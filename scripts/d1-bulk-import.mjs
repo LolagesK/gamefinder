@@ -45,10 +45,16 @@ export async function runImport({fetcher=fetch,env=process.env,log=console.log}=
   }
  }
  await api([{sql:'CREATE TABLE IF NOT EXISTS games(app_id INTEGER PRIMARY KEY,payload TEXT NOT NULL,updated_at TEXT)'}]);
+ await api([{sql:'CREATE TABLE IF NOT EXISTS gamefinder_stats(id INTEGER PRIMARY KEY CHECK(id=1),total INTEGER NOT NULL,updated_at TEXT)'}]);
+ const syncCount=async()=>{
+  const info=await api([{sql:'SELECT count(*) AS n FROM games'}]);
+  const n=Number(info.result?.[0]?.results?.[0]?.n||0);
+  await api([{sql:`INSERT INTO gamefinder_stats(id,total,updated_at) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET total=excluded.total,updated_at=excluded.updated_at`,params:[n,iso()]}]);
+ };
  await api([{sql:`CREATE TABLE IF NOT EXISTS catalog_import_state(source TEXT PRIMARY KEY,cursor INTEGER NOT NULL DEFAULT 0,source_total INTEGER NOT NULL DEFAULT 0,status TEXT NOT NULL DEFAULT 'pending',last_error TEXT,added_total INTEGER NOT NULL DEFAULT 0,updated_at TEXT,completed_at TEXT)`}]);
  const savedRaw=await api([{sql:'SELECT cursor,source_total,status,completed_at,added_total FROM catalog_import_state WHERE source=?',params:[SOURCE_KEY]}]);
  const previous=savedRaw.result?.[0]?.results?.[0]||{cursor:0,source_total:0,status:'not-started',added_total:0};
- if(previous.status==='complete'&&previous.completed_at&&Date.now()-Date.parse(previous.completed_at)<SCAN_RECHECK_DAYS*86400000){log('Already complete; weekly rescan not due.');return {skipped:true};}
+ if(previous.status==='complete'&&previous.completed_at&&Date.now()-Date.parse(previous.completed_at)<SCAN_RECHECK_DAYS*86400000){await syncCount();log('Already complete; weekly rescan not due.');return {skipped:true};}
  const sourceResponse=await fetcher(SOURCE,{headers:{Accept:'application/json'}});
  if(!sourceResponse.ok)throw Error('Could not fetch community source HTTP '+sourceResponse.status);
  const items=await sourceResponse.json();if(!Array.isArray(items))throw Error('Expected game.json array');
@@ -70,6 +76,7 @@ export async function runImport({fetcher=fetch,env=process.env,log=console.log}=
  if(cursor===items.length){
   await api([{sql:`UPDATE catalog_import_state SET status='complete',completed_at=?,updated_at=? WHERE source=?`,params:[iso(),iso(),SOURCE_KEY]}]);
  }
+ await syncCount();
  log(`IMPORT DONE: processed through ${cursor}/${items.length}. New games are available via /api/catalog/meta.`);
  return {cursor,total:items.length,completed:cursor===items.length};
 }

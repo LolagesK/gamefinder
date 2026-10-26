@@ -88,6 +88,7 @@ function comparator(sort) {
   return (a,b)=>{
     if(a.preferredHits!==b.preferredHits)return b.preferredHits-a.preferredHits;
     let compare=0;
+    if(sort==='popular'||sort==='relevance')compare=compareKnown(a.game.popularityScore,b.game.popularityScore,false);
     if(sort==='name')compare=a.game.name.localeCompare(b.game.name,'ru');
     if(sort==='year')compare=compareKnown(a.game.year,b.game.year,false);
     if(sort==='rating')compare=compareKnown(a.game.reviewsPositive,b.game.reviewsPositive,false);

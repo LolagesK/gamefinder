@@ -1,10 +1,13 @@
-GameFinder PC v0.4.0
-- Large game-only community Steam AppID import via GitHub Actions and Cloudflare D1 REST API
-- 30,000 source rows per job; checkpoint per chunk; resumes on next run
-- Auto schedule once daily + manual Run workflow
-- D1 INSERT OR IGNORE preserves curated games and metadata
-- Public, read-only status endpoints /api/catalog/meta and /api/catalog/import-status
-- Faster default browse via paginated D1 requests, improved unknown metadata UX
-- IMPORTANT: GitHub repository secrets required (account ID, D1 ID, scoped D1 API token)
-- IMPORTANT: do not overwrite existing wrangler.jsonc database_id placeholder
-- No Cloudflare Cron used on free Workers due to 10ms CPU limit
+GameFinder PC v0.4.1 — Covers + Popularity + Steam Metadata
+
+- Prefer SteamSpy-ranked popular games in server-side browse, with stable pagination.
+- Added explicit "Сначала популярные" sort, including filtered views.
+- New GitHub Actions SteamSpy popularity and incremental official Steam Store metadata enrichment.
+- Steam CDN image fallbacks, safe placeholder; estimated SteamSpy review metadata labelled.
+- Quick view and detail pages work for newly loaded remote catalogue games.
+- Existing 210k+ D1 records remain untouched unless enrichment fills their data.
+- Cached game counts prevent full-table COUNT() scans on every catalogue visit.
+- No public write API, no new secrets required.
+- 7 tests pass.
+
+SteamSpy popularity is a third-party estimate. Metadata cannot be populated for all apps at once.

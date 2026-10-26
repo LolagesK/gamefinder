@@ -60,8 +60,9 @@ export function buildCatalogSQL(query={}){
   let where='1=1';
   if(rawText){where="(LOWER(json_extract(g.payload,'$.name')) LIKE ? ESCAPE '\\' OR LOWER(json_extract(g.payload,'$.tags')) LIKE ? ESCAPE '\\'";params.push(`%${rawText}%`,`%${rawText}%`);const translations=Object.entries(tagAliasesRu).filter(([,ru])=>ru.includes(rawText)).map(([en])=>en).slice(0,8);for(const tag of translations){where+=" OR EXISTS (SELECT 1 FROM json_each(g.payload,'$.tags') WHERE value = ?)";params.push(tag);}where+=')';}
   const cte=`WITH evaluated AS (SELECT g.app_id, g.payload${exprs.length?', '+exprs.join(', '):''} FROM games g WHERE ${where}), classified AS (SELECT app_id, payload, (${score}) AS preferred_hits, CASE WHEN (${fails}) THEN 'similar' WHEN (${unknown}) THEN 'unverified' ELSE 'exact' END AS tier FROM evaluated)`;
-  const orderKey={name:`json_extract(payload,'$.name') COLLATE NOCASE ASC`,year:`json_extract(payload,'$.year') DESC`,rating:`json_extract(payload,'$.reviewsPositive') DESC`,reviews:`json_extract(payload,'$.reviewsTotal') DESC`,storage:`json_extract(payload,'$.storageGb') ASC`};
-  let order=`preferred_hits DESC, json_extract(payload,'$.name') COLLATE NOCASE ASC`;
+  const popularityOrder="COALESCE(CAST(json_extract(payload,'$.popularityScore') AS INTEGER),0) DESC";
+  const orderKey={popular:popularityOrder,name:`json_extract(payload,'$.name') COLLATE NOCASE ASC`,year:`json_extract(payload,'$.year') DESC`,rating:`json_extract(payload,'$.reviewsPositive') DESC`,reviews:`json_extract(payload,'$.reviewsTotal') DESC`,storage:`json_extract(payload,'$.storageGb') ASC`};
+  let order=`preferred_hits DESC, ${popularityOrder}, json_extract(payload,'$.name') COLLATE NOCASE ASC`;
   if(orderKey[query.sort])order=`${orderKey[query.sort]}, preferred_hits DESC, json_extract(payload,'$.name') COLLATE NOCASE ASC`;
   if(query.sort==='price-asc'||query.sort==='price-desc')order=`COALESCE(CASE WHEN json_extract(payload,'$.isFree') = 1 THEN 0 ELSE json_extract(payload,'$.priceCents') END, 999999999) ${query.sort==='price-desc'?'DESC':'ASC'}, preferred_hits DESC, json_extract(payload,'$.name') COLLATE NOCASE ASC`;
   return {cte,params,order};

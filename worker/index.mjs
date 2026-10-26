@@ -1,6 +1,6 @@
 import {executeCatalog} from '../shared/catalog-api.mjs';
 import {importStatus} from './catalog-import.mjs';
-const headers={'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=20','x-content-type-options':'nosniff','x-gamefinder-version':'0.4.0'};
+const headers={'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=20','x-content-type-options':'nosniff','x-gamefinder-version':'0.4.1'};
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
 export default {
  async fetch(request,env){
@@ -8,8 +8,14 @@ export default {
   if(url.pathname==='/api/catalog/meta'){
    if(!env.DB)return json({available:false,mode:'static'});
    try{
-    const row=await env.DB.prepare('SELECT count(*) AS n FROM games').first();
-    return json({available:true,mode:'d1',total:Number(row.n),pageSize:18,version:'0.4.0',importStatus:await importStatus(env.DB)});
+    let row;
+    try{row=await env.DB.prepare('SELECT total AS n FROM gamefinder_stats WHERE id=1').first();}catch{}
+    if(!row)row=await env.DB.prepare('SELECT count(*) AS n FROM games').first();
+    let enrichmentStatus=null;
+    try{const latest=await env.DB.prepare('SELECT cursor,updated_at,last_error,ranked_total FROM game_enrich_state WHERE id=1').first();
+      enrichmentStatus={ranked:Number(latest?.ranked_total||0),metadataCursor:Number(latest?.cursor||0),updatedAt:latest?.updated_at||null};
+    }catch{}
+    return json({available:true,mode:'d1',total:Number(row.n),pageSize:18,version:'0.4.1',importStatus:await importStatus(env.DB),enrichmentStatus});
    }catch(e){return json({available:false,error:'D1 schema not initialized'},503);}
   }
   if(url.pathname==='/api/catalog/import-status'){

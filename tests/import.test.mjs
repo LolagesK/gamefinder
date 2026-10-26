@@ -51,6 +51,6 @@ test('Worker read-only status endpoints work and do not enable public writes',as
  const D1={prepare(sql){let args=[];return {bind(...p){args=p;return this;},async first(){return db.prepare(sql).get(...args)||null;},async all(){return {results:db.prepare(sql).all(...args)}}}}};
  const ASSETS={fetch:async()=>new Response('static')};
  const meta=await (await worker.fetch(new Request('https://x.test/api/catalog/meta'),{DB:D1,ASSETS})).json();
- assert.equal(meta.total,3);assert.equal(meta.version,'0.4.0');assert.equal(meta.importStatus.status,'complete');
+ assert.equal(meta.total,3);assert.equal(meta.version,'0.4.1');assert.equal(meta.importStatus.status,'complete');
  const other=await worker.fetch(new Request('https://x.test/api/admin/import',{method:'POST'}),{DB:D1,ASSETS});assert.equal(other.status,404);
 });

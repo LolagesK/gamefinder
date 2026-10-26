@@ -32,3 +32,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 /* v0.1.2 — панель действий не перекрывает прокручиваемые фильтры */
 @media(max-height:560px){.filters-heading{padding:10px 15px 9px}.filter-bottom{padding:9px 14px 10px;gap:5px}.filter-scroll{padding:9px 14px 16px}.filter-summary{font-size:10px}.filter-actions .btn{min-height:36px}}
 #results-start{scroll-margin-top:90px}
+
+/* v0.4.1: Steam artwork always visible; readable cover fallback on unavailable CDN images. */
+.cover-fallback b{max-width:100%;overflow-wrap:anywhere;text-shadow:0 2px 14px #030713a6}
+.game-card .cover img{opacity:1!important;visibility:visible!important}
+.popularity-chip{color:#f4d18f;background:#483820;border-color:#9f794748;display:inline-flex;align-items:center;gap:4px}
+.popularity-chip .icon{width:11px;height:11px}

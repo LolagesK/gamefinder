@@ -1,16 +1,1 @@
-{
-  "release": "0.4.0",
-  "cloudflareBase": "0.3.4",
-  "localBase": "0.3.0",
-  "deployed": false,
-  "import": "GitHub Actions -> D1 REST API",
-  "source": "Austrum-lab/steam-appdb data/game.json",
-  "schedule": "daily 03:20 UTC",
-  "maxSourceEntriesPerRun": 30000,
-  "preservesExistingData": true,
-  "secretsRequired": [
-    "CLOUDFLARE_API_TOKEN",
-    "CLOUDFLARE_ACCOUNT_ID",
-    "CLOUDFLARE_D1_ID"
-  ]
-}
+{"name":"GameFinder PC","version":"0.4.1","runtime":"Cloudflare Workers+D1","source":"v0.4.0","features":["steam-images-fallback","steamspy-popularity","steam-store-incremental-enrichment","remote-quick-view"],"databaseReset":false,"requiresNewSecrets":false}
