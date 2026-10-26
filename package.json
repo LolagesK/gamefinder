@@ -1,9 +1,12 @@
 {
   "name": "gamefinder-pc-cloudflare",
   "private": true,
-  "version": "0.3.4",
+  "version": "0.4.0",
   "type": "module",
   "devDependencies": {
     "wrangler": "4.153.0"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
   }
 }

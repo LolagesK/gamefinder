@@ -1,13 +1,20 @@
 import {executeCatalog} from '../shared/catalog-api.mjs';
-const headers={'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=30','x-content-type-options':'nosniff'};
+import {importStatus} from './catalog-import.mjs';
+const headers={'content-type':'application/json; charset=utf-8','cache-control':'public, max-age=20','x-content-type-options':'nosniff','x-gamefinder-version':'0.4.0'};
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers});
 export default {
  async fetch(request,env){
   const url=new URL(request.url);
   if(url.pathname==='/api/catalog/meta'){
    if(!env.DB)return json({available:false,mode:'static'});
-   try{const row=await env.DB.prepare('SELECT count(*) AS n FROM games').first();return json({available:true,mode:'d1',total:Number(row.n),pageSize:18});}
-   catch(e){return json({available:false,error:'D1 schema not initialized'});}
+   try{
+    const row=await env.DB.prepare('SELECT count(*) AS n FROM games').first();
+    return json({available:true,mode:'d1',total:Number(row.n),pageSize:18,version:'0.4.0',importStatus:await importStatus(env.DB)});
+   }catch(e){return json({available:false,error:'D1 schema not initialized'},503);}
+  }
+  if(url.pathname==='/api/catalog/import-status'){
+   if(!env.DB)return json({available:false},503);
+   return json({available:true,...await importStatus(env.DB)});
   }
   if(url.pathname==='/api/catalog'){
    if(!env.DB)return json({error:'D1 is not bound'},503);
@@ -22,6 +29,8 @@ export default {
    const id=Number(url.pathname.split('/').pop());const row=await env.DB.prepare('SELECT payload FROM games WHERE app_id=?').bind(id).first();
    return row?json(JSON.parse(row.payload)):json({error:'Game not found'},404);
   }
+  // No public import endpoint. Only the platform scheduler may mutate D1.
+  if(url.pathname.startsWith('/api/'))return json({error:'Unknown API endpoint'},404);
   return env.ASSETS.fetch(request);
  }
 };

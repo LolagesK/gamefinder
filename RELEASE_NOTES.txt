@@ -1,0 +1,10 @@
+GameFinder PC v0.4.0
+- Large game-only community Steam AppID import via GitHub Actions and Cloudflare D1 REST API
+- 30,000 source rows per job; checkpoint per chunk; resumes on next run
+- Auto schedule once daily + manual Run workflow
+- D1 INSERT OR IGNORE preserves curated games and metadata
+- Public, read-only status endpoints /api/catalog/meta and /api/catalog/import-status
+- Faster default browse via paginated D1 requests, improved unknown metadata UX
+- IMPORTANT: GitHub repository secrets required (account ID, D1 ID, scoped D1 API token)
+- IMPORTANT: do not overwrite existing wrangler.jsonc database_id placeholder
+- No Cloudflare Cron used on free Workers due to 10ms CPU limit
