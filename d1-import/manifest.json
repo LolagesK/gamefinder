@@ -1,0 +1,8 @@
+{
+  "games": 130,
+  "files": [
+    "000_schema.sql",
+    "001_games.sql"
+  ],
+  "generated": "2026-10-26T16:48:27.243Z"
+}
