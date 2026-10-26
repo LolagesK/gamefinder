@@ -1,0 +1,26 @@
+name: Enrich Steam games and update popularity
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '10 4 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: gamefinder-d1-enrich
+  cancel-in-progress: false
+jobs:
+  enrich-games:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enrich Steam metadata and popularity in existing D1
+        run: node scripts/d1-enrich-games.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_D1_ID: ${{ secrets.CLOUDFLARE_D1_ID }}
+          STORE_PER_RUN: '45'
